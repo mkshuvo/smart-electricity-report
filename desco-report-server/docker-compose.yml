@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17.5-alpine3.22
     container_name: desco-postgres
     environment:
       POSTGRES_USER: desco_user
@@ -24,7 +24,7 @@ services:
 
   # Redis Cache
   redis:
-    image: redis:7-alpine
+    image: redis:8.0.3-alpine3.21
     container_name: desco-redis
     ports:
       - "6379:6379"

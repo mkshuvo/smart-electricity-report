@@ -7,7 +7,6 @@ WORKDIR /src
 
 # Copy project files
 COPY ["desco-report-server.csproj", "./"]
-COPY ["desco-report-server.csproj", "./"]
 
 # Restore dependencies
 RUN dotnet restore "desco-report-server.csproj"

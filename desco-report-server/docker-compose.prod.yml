@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database - Production
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17.5-alpine3.22
     container_name: desco-postgres-prod
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-desco_user}

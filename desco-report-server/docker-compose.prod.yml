@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Production
+  postgres:
+    image: postgres:15-alpine
+    container_name: desco-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-desco_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-desco_report_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - desco-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-desco_user} -d ${POSTGRES_DB:-desco_report_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis Cache - Production
+  redis:
+    image: redis:7-alpine
+    container_name: desco-redis-prod
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password_change_me}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_prod_data:/data
+    networks:
+      - desco-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_password_change_me}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # DESC Report Server - Production
+  desco-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: desco-server-prod
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=${POSTGRES_DB:-desco_report_db};Username=${POSTGRES_USER:-desco_user};Password=${POSTGRES_PASSWORD:-secure_password_change_me}
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD:-redis_password_change_me}
+      Jwt__Key: ${JWT_SECRET_KEY:-your-super-secret-jwt-key-change-this-in-production}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - ./appsettings.Production.json:/app/appsettings.Production.json:ro
+    networks:
+      - desco-prod-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:
+
+networks:
+  desco-prod-network:
+    driver: bridge

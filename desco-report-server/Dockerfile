@@ -40,14 +40,14 @@ RUN chown -R desco:desco /app
 USER desco
 
 # Expose port
-EXPOSE 8080
+EXPOSE 7654
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+    CMD curl -f http://localhost:7654/health || exit 1
 
 # Set ASP.NET Core environment
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:7654
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Start the application

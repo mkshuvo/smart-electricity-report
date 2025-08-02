@@ -90,9 +90,9 @@ help:
 # Development environment
 dev: env dev-up
 	@echo "$(GREEN)Development environment started!$(NC)"
-	@echo "$(BLUE)API available at: http://localhost:8080$(NC)"
-	@echo "$(BLUE)PostgreSQL available at: localhost:5432$(NC)"
-	@echo "$(BLUE)Redis available at: localhost:6379$(NC)"
+	@echo "$(BLUE)API available at: http://localhost:7654$(NC)"
+	@echo "$(BLUE)PostgreSQL available at: localhost:9876$(NC)"
+	@echo "$(BLUE)Redis available at: localhost:8765$(NC)"
 
 dev-up:
 	$(DEV_UP)
@@ -103,7 +103,7 @@ dev-down:
 # Production environment
 prod: env prod-up
 	@echo "$(GREEN)Production environment started!$(NC)"
-	@echo "$(BLUE)API available at: http://localhost:8080$(NC)"
+	@echo "$(BLUE)API available at: http://localhost:7654$(NC)"
 	@echo "$(YELLOW)Remember to set secure passwords in .env file!$(NC)"
 
 prod-up:
@@ -161,11 +161,19 @@ clean-all: clean
 
 # Environment setup
 env:
+ifeq ($(OS),Windows_NT)
+	@if not exist $(ENV_FILE) ( \
+		echo Creating .env file... && \
+		copy .env.example .env || echo Creating new .env file... && \
+		$(MAKE) create-env \
+	)
+else
 	@if [ ! -f $(ENV_FILE) ]; then \
 		echo "Creating .env file..."; \
 		cp .env.example .env || echo "Creating new .env file..."; \
 		$(MAKE) create-env; \
 	fi
+endif
 
 # Windows-specific commands
 ifeq ($(OS),Windows_NT)
